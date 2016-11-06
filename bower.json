@@ -1,0 +1,30 @@
+{
+  "name": "guess-num",
+  "description": "Guess the number using halogen",
+  "keywords": [
+    "game",
+    "ui",
+    "purescript"
+  ],
+  "authors": [
+    "Gil Mizrahi <soupiral@gmail.com>"
+  ],
+  "version": "1.0.0",
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "purescript-prelude": "^2.1.0",
+    "purescript-halogen": "^0.12.0",
+    "purescript-random": "^2.0.0"
+  },
+  "devDependencies": {
+    "purescript-psci-support": "^2.0.0"
+  }
+}
