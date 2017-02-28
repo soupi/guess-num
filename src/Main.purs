@@ -3,28 +3,25 @@ module Main where
 import Control.Monad.Aff (Aff)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Random (randomInt, RANDOM)
-import Control.MonadPlus (guard)
-import Data.Array (zipWith, length, reverse)
-import Data.Foldable (sum)
-import Data.Int (toNumber, floor)
+import Data.Int (fromString)
 import Data.List (head, (:), List(Nil))
 import Data.Maybe (Maybe(Just, Nothing), maybe)
-import Data.String (toCharArray, trim)
-import Data.Traversable (traverse)
-import Halogen (ComponentHTML, ComponentDSL, Component, HalogenEffects, set, fromEff, modify, component, runUI)
-import Halogen.HTML (a, text, button, p_, input, span_, h1_, div_)
+import Data.String (trim)
+import Halogen (Component, ComponentDSL, ComponentHTML, component, liftEff, modify, put)
+import Halogen.Aff.Effects (HalogenEffects)
+import Halogen.Aff.Util (awaitBody, runHalogenAff)
+import Halogen.HTML (HTML, a, text, button, p_, input, span_, h1_, div_)
+import Halogen.HTML.Events (onValueInput)
 import Halogen.HTML.Events (input, input_, onClick) as E
-import Halogen.HTML.Events.Forms (onValueInput)
 import Halogen.HTML.Properties (href, value)
-import Halogen.Util (awaitBody, runHalogenAff)
-import Math (pow)
+import Halogen.VDom.Driver (runUI)
 import Prelude hiding (Ordering(..))
 
-main :: Eff (AppEffects ()) Unit              
+main :: Eff (HalogenEffects (random :: RANDOM)) Unit
 main = runHalogenAff do
   body <- awaitBody
-  state <- fromEff initialState
-  runUI ui state body
+  state <- liftEff initialState
+  runUI (ui state) unit body
 
 type State =
   { target :: Int
@@ -48,12 +45,16 @@ data Query a
   | Restart a
   | SetGuess String a
 
-type AppEffects eff = HalogenEffects (random :: RANDOM | eff)
+ui :: forall eff. State -> Component HTML Query Unit Void (Aff (random :: RANDOM | eff))
+ui state =
+  component
+    { initialState: const state
+    , render: render
+    , eval: eval
+    , receiver: const Nothing
+    }
 
-ui :: forall eff. Component State Query (Aff (AppEffects eff))
-ui = component { render, eval }
-
-eval :: forall eff. Query ~> ComponentDSL State Query (Aff (AppEffects eff))
+eval :: forall eff. Query ~> ComponentDSL State Query Void (Aff (random :: RANDOM | eff))
 eval = case _ of
   SetGuess input next -> do
     modify (_ { guess = input })
@@ -69,8 +70,8 @@ eval = case _ of
     pure next
 
   Restart next -> do
-    newState <- fromEff initialState
-    set newState
+    newState <- liftEff initialState
+    put newState
     pure next
 
 render :: State -> ComponentHTML Query
@@ -135,25 +136,4 @@ compareGuess input target =
   maybe Invalid (_ `cmp` target) (inputToGuess input)
 
 inputToGuess :: String -> Maybe Int
-inputToGuess inp = do
-  digArr <- map reverse <<< traverse toDigit <<< toCharArray <<< trim $ inp
-  guard (0 < length digArr && length digArr < 3)
-  pure $ sum $ zipWith (\n p -> floor (toNumber n * pow 10.0 p)) digArr [0.0,1.0]
-
-toDigit :: Char -> Maybe Int
-toDigit = case _ of
-  '0' -> pure 0
-  '1' -> pure 1
-  '2' -> pure 2
-  '3' -> pure 3
-  '4' -> pure 4
-  '5' -> pure 5
-  '6' -> pure 6
-  '7' -> pure 7
-  '8' -> pure 8
-  '9' -> pure 9
-  _   -> Nothing
-
-  
-
-  
+inputToGuess = fromString <<< trim

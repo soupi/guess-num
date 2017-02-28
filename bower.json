@@ -9,7 +9,6 @@
   "authors": [
     "Gil Mizrahi <soupiral@gmail.com>"
   ],
-  "version": "1.0.0",
   "license": "MIT",
   "private": true,
   "ignore": [
@@ -20,8 +19,8 @@
     "tests"
   ],
   "dependencies": {
-    "purescript-prelude": "^2.1.0",
-    "purescript-halogen": "^0.12.0",
+    "purescript-prelude": "^2.4.0",
+    "purescript-halogen": "^1.0.0",
     "purescript-random": "^2.0.0"
   },
   "devDependencies": {
